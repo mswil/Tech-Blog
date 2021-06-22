@@ -2,7 +2,7 @@ const path = require('path');
 const express = require('express');
 
 // for testing
-const { User, Post } = require('./models')
+const { User, Post, Comment } = require('./models')
 
 const app = express();
 const PORT = process.env.PORT || 3001;
