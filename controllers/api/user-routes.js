@@ -1,5 +1,6 @@
 const router = require('express').Router();
 const { User, Post, Comment } = require('../../models');
+const withAuth = require('../../utils/auth');
 
 // GET /api/users
 router.get('/', (req, res) => {
@@ -47,18 +48,71 @@ router.get('/:id', (req, res) => {
 });
 
 // POST /api/users
-router.post('/', (req, res) => {
+router.post('/', withAuth, (req, res) => {
     // expects {"username": "name", "password": "password1234"}
     User.create({
         username: req.body.username,
         password: req.body.password
     })
-    // TODO: Session
-    .then(dbUserData => res.json(dbUserData))
-    .catch(err => {
-        console.error(err);
-        res.status(500).json(err)
-    });
+        .then(dbUserData => {
+            req.session.save(() => {
+                req.session.user_id = dbUserData.id;
+                req.session.username = dbUserData.username;
+                req.session.loggedIn = true;
+
+                res.json(dbUserData);
+            });
+        })
+        .catch(err => {
+            console.error(err);
+            res.status(500).json(err)
+        });
 });
 
+// POST /api/users/login
+router.post('/login', withAuth, (req, res) => {
+    User.findOne({
+        where: {
+            username: req.body.username
+        }
+    })
+        .then(dbUserData => {
+            if (!dbUserData) {
+                res.status(404).json({ message: 'There is NO user with that ID' });
+                return;
+            }
+
+            const validPassword = dbUserData.checkPassword(req.body.password);
+
+            if (!validPassword) {
+                res.status(400).json({ message: 'Incorrect password' })
+            }
+
+            req.session.save(() => {
+                req.session.user_id = dbUserData.id;
+                req.session.username = dbUserData.username;
+                req.session.loggedIn = true;
+
+                res.json({ user: dbUserData, message: 'You are now logged in!' });
+            });
+        })
+        .catch(err => {
+            console.log(err);
+            res.status(500).json(err);
+        });
+});
+
+// POST /api/users/logout
+router.post('/logout', withAuth, (req, res) => {
+    if (req.session.loggedIn) {
+        req.session.destroy(() => {
+            res.status(204).end();
+        });
+    }
+    else {
+        res.status(404).end();
+    }
+})
+
+// future development: PUT & DELETE user.
 module.exports = router;
