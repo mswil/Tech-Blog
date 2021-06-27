@@ -1,0 +1,9 @@
+<article class="post card">
+
+  <div class="title flex-row justify-space-between card-header">
+    <a href="/dashboard/edit/{{id}}" class="link col-7" style="font-weight: bold;">{{title}}</a>
+    <span class="col- secondary">Posted on {{format_date created_at}}</span>
+      <span class="col-2 secondary">{{comments.length}} {{format_plural "comment" comments.length}}</span>
+  </div>
+</article>
+

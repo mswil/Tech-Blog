@@ -1,0 +1,31 @@
+<section class="create-post card hidden">
+  <div class="card-header post-title">Create New Post</div>
+
+  <form class="new-post-form card-body">
+    <div>
+      <label for="post-title form-label">Title</label>
+      <input type="text" id="post-title" name="post-title" class="form-input"/>
+    </div>
+    <div style="margin-bottom: 25px;">
+      <label for="content" class="form-label">Content</label>
+      <textarea id="content" name="content" class="form-textarea"></textarea>
+    </div>
+    <button type="submit" class="btn">Create</button>
+  </form>
+</section>
+
+<div class="flex-row justify-center">
+
+<button type="button" id="new-post-btn" class="btn" style="width: 50%;">+ New Post</button>
+</div>
+
+{{#if posts.length}}
+<section>
+  <h2>Your Posts</h2>
+    {{#each posts as |post|}}
+      {{> dashboard-post post}}
+    {{/each}}
+</section>
+{{/if}}
+
+<script src="/scripts/add-post.js"></script>

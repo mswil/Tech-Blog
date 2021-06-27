@@ -1,0 +1,19 @@
+<article class="post card">
+  <div class="title card-header flex-row justify-space-between align-center">
+    <span class="post-title">{{post.title}}</span>
+    <span>Posted by {{post.user.username}} on {{format_date post.created_at}}</span>
+  </div>
+  <div class="card-body">
+    {{post.content}}
+  </div>
+</article>
+
+{{#if loggedIn}}
+{{> comment-form}}
+{{/if}}
+
+{{> comment post.comments}}
+
+{{#if loggedIn}}
+<script src="/scripts/comment.js"></script>
+{{/if}}
