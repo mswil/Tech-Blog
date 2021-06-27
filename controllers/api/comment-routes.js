@@ -1,6 +1,6 @@
 const router = require('express').Router();
 const { User, Post, Comment } = require('../../models');
-const withAuth = require('../../utils/auth');
+const {withAuthApi} = require('../../utils/auth');
 
 // GET /api/comments
 router.get('/', (req, res) => {
@@ -63,11 +63,11 @@ router.get('/:id', (req, res) => {
 });
 
 // POST /api/comments
-router.post('/', withAuth, (req, res) => {
+router.post('/', withAuthApi, (req, res) => {
     // expects {"comment_text": "text", "user_id": #, "post_id": #}
     Comment.create({
         comment_text: req.body.comment_text,
-        user_id: req.body.user_id,
+        user_id: req.session.user_id,
         post_id: req.body.post_id
     })
         .then(dbCommentData => res.json(dbCommentData))
@@ -78,7 +78,7 @@ router.post('/', withAuth, (req, res) => {
 });
 
 // PUT /api/comments/:id
-router.put('/:id', withAuth, (req, res) => {
+router.put('/:id', withAuthApi, (req, res) => {
     // expects {"comment_text": "text", "user_id": #, "post_id": #}
     Comment.update(
         {
@@ -104,7 +104,7 @@ router.put('/:id', withAuth, (req, res) => {
 });
 
 // DELETE /api/comments/:id
-router.delete('/:id', withAuth, (req, res) => {
+router.delete('/:id', withAuthApi, (req, res) => {
     Comment.destroy({
         where: {
             id: req.params.id

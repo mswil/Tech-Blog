@@ -1,6 +1,8 @@
 const path = require('path');
 const express = require('express');
 const session = require('express-session');
+const exphbs = require('express-handlebars');
+const helpers = require('./utils/helpers');
 
 // for testing
 const { User, Post, Comment } = require('./models')
@@ -13,7 +15,8 @@ const SequelizeStore = require('connect-session-sequelize')(session.Store);
 
 const sess = {
     secret: 'Super secret secret',
-    cookie: {},
+    cookie: { maxAge : 1000 * 60 * 15},
+    rolling: true,
     resave: false,
     saveUninitialized: true,
     store: new SequelizeStore({
@@ -22,6 +25,11 @@ const sess = {
 };
 
 app.use(session(sess));
+
+const hbs = exphbs.create({helpers});
+
+app.engine('handlebars', hbs.engine);
+app.set('view engine', 'handlebars');
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));

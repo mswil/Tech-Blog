@@ -1,6 +1,6 @@
 const router = require('express').Router();
 const { User, Post, Comment } = require('../../models');
-const withAuth = require('../../utils/auth');
+const {withAuthApi} = require('../../utils/auth');
 
 // GET /api/users
 router.get('/', (req, res) => {
@@ -48,19 +48,30 @@ router.get('/:id', (req, res) => {
 });
 
 // POST /api/users
-router.post('/', withAuth, (req, res) => {
-    // expects {"username": "name", "password": "password1234"}
-    User.create({
-        username: req.body.username,
-        password: req.body.password
+router.post('/', (req, res) => {
+    User.findOne({
+        where: {
+            username: req.body.username
+        },
+        attributes: { exclude: ['password'] }
     })
         .then(dbUserData => {
+            if (dbUserData) {
+                throw { message: 'Username already taken' };
+            }
+            // expects {"username": "name", "password": "password1234"}
+            return User.create({
+                username: req.body.username,
+                password: req.body.password
+            });
+        })
+        .then(dbCreateUserData => {
             req.session.save(() => {
-                req.session.user_id = dbUserData.id;
-                req.session.username = dbUserData.username;
+                req.session.user_id = dbCreateUserData.id;
+                req.session.username = dbCreateUserData.username;
                 req.session.loggedIn = true;
 
-                res.json(dbUserData);
+                res.json(dbCreateUserData);
             });
         })
         .catch(err => {
@@ -70,7 +81,7 @@ router.post('/', withAuth, (req, res) => {
 });
 
 // POST /api/users/login
-router.post('/login', withAuth, (req, res) => {
+router.post('/login', (req, res) => {
     User.findOne({
         where: {
             username: req.body.username
@@ -78,7 +89,7 @@ router.post('/login', withAuth, (req, res) => {
     })
         .then(dbUserData => {
             if (!dbUserData) {
-                res.status(404).json({ message: 'There is NO user with that ID' });
+                res.status(404).json({ message: 'There is no user with that username' });
                 return;
             }
 
@@ -103,7 +114,7 @@ router.post('/login', withAuth, (req, res) => {
 });
 
 // POST /api/users/logout
-router.post('/logout', withAuth, (req, res) => {
+router.post('/logout', withAuthApi, (req, res) => {
     if (req.session.loggedIn) {
         req.session.destroy(() => {
             res.status(204).end();
